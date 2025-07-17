@@ -5,7 +5,7 @@ import BackButton from '../components/BackButton';
 import Spinner from '../components/Spinner';
 
 const ShowBook = () => {
-  const [book, setBook] = useState({});
+  const [book, setBook] = useState([]);
   const [loading, setLoading] = useState(false);
   const { id } = useParams();
 
@@ -14,7 +14,7 @@ const ShowBook = () => {
     axios
       .get(`http://localhost:5000/books/${id}`)
       .then((response) => {
-        setBook(response.data);
+        setBook(response.data.book);
         setLoading(false);
       })
       .catch((error) => {
@@ -50,11 +50,11 @@ const ShowBook = () => {
               </div>
               <div className="my-4">
                 <span className='text-xl mr-4 text-gray-500'>Create Time</span>
-                <span>{new Date(book.createdAt).toLocaleDateString()}</span>
+                <span>{new Date(book.createdAt).toLocaleString()}</span>
               </div>
               <div className="my-4">
                 <span className='text-xl mr-4 text-gray-500'>Last Update Time</span>
-                <span>{new Date(book.updatedAt).toLocaleDateString()}</span>
+                <span>{new Date(book.updatedAt).toLocaleString()}</span>
               </div>
             </div>
           )
