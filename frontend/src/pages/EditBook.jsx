@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import Spinner from '../components/Spinner';
 import axios from 'axios';
+import { useSnackbar } from 'notistack';
 
 const EditBook = () => {
   const [title, setTitle] = useState('');
@@ -10,23 +11,28 @@ const EditBook = () => {
   const [publishYear, setPublishYear] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
 
   useEffect(() => {
     setLoading(true);
     axios.get(`http://localhost:5000/books/${id}`)
     .then((response) => {
-      setTitle(response.data.title);
-      setAuthor(response.data.author);
-      setPublishYear(response.data.publishYear);
+      const bookData = response.data;
+      // Check if the response is the book object or if it's nested
+      const actualData = bookData.book || bookData; // Handle both cases
+      
+      setTitle(actualData.title || '');
+      setAuthor(actualData.author || '');
+      setPublishYear(actualData.publishYear || '');
       setLoading(false);
     })
     .catch((error) => {
       setLoading(false);
-      alert('An error occured. Please check console');
+      enqueueSnackbar('Error fetching book data', {variant: 'error'});
       console.log(error);
     });
-  }, []);
+  }, [id]); // Added id as dependency
 
   const handleEditBook = () => {
     const data = {
@@ -39,11 +45,12 @@ const EditBook = () => {
       .put(`http://localhost:5000/books/${id}`, data)
       .then(() => {
         setLoading(false);
+        enqueueSnackbar('Book updated Successfully', {variant: 'success'});
         navigate('/');
       })
       .catch((error) => {
         setLoading(false);
-        alert('An error occured. Please check console');
+        enqueueSnackbar('Error updating book', {variant: 'error'});
         console.log(error);
       });
   };
@@ -51,10 +58,8 @@ const EditBook = () => {
   return (
     <div className='p-4'>
       <BackButton/>
-      <h1 className='text-3xl my-4'>Create Book</h1>
-      {
-        loading ? <Spinner/> : ''
-      }
+      <h1 className='text-3xl my-4'>Update Book</h1>
+      {loading && <Spinner/>}
       <div className="flex flex-col border-2 border-sky-400 rounded-xl w-[600px] p-4 mx-auto">
         <div className="my-4">
           <label className='text-xl mr-4 text-gray-500'>Title</label>
@@ -77,13 +82,16 @@ const EditBook = () => {
         <div className="my-4">
           <label className='text-xl mr-4 text-gray-500'>Publish Year</label>
           <input
-            type='text'
+            type='number'
             value={publishYear}
             onChange={(e) => setPublishYear(e.target.value)}
             className='border-2 border-gray-500 px-4 py-2 w-full'
           />
         </div>
-        <button className='p-2 bg-sky-300 m-8' onClick={handleEditBook}>
+        <button 
+          className='p-2 bg-sky-300 m-8 hover:bg-sky-600 hover:text-white transition-all' 
+          onClick={handleEditBook}
+        >
           Update
         </button>
       </div>
